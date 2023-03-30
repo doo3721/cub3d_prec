@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:55 by doohkim           #+#    #+#             */
-/*   Updated: 2023/03/30 16:34:43 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/03/30 19:12:58 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,14 @@ typedef enum e_keycode
 	ESC_KEY = 53
 }	t_keycode;
 
+enum	e_key_press
+{
+	UP_PRESS = 0,
+	DOWN_PRESS,
+	LEFT_PRESS,
+	RIGHT_PRESS
+}	;
+
 typedef struct s_player
 {
 	double	pos_x;
@@ -88,6 +96,7 @@ typedef struct s_game_struct
 	t_frame		f_obj;
 	t_image		*img_set;
 	t_image		tex_set[6];
+	int			key_press[4];
 }	t_game_struct;
 
 int		ft_error(char *str, t_game_struct *g_obj);

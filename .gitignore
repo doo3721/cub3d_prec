@@ -1,0 +1,5 @@
+libmlx.dylib
+libft.a
+cub3d
+*/*.o
+*.o

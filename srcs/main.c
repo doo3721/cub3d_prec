@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:20 by doohkim           #+#    #+#             */
-/*   Updated: 2023/03/30 17:48:59 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/03/30 19:28:32 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,8 +61,8 @@ void	init_obj(t_game_struct *g_obj)
 	g_obj->p_obj.plane_y = 0.66;
 	g_obj->f_obj.old_time = 0;
 	g_obj->f_obj.time = 0;
-	g_obj->f_obj.move_speed = 5.0 / 30.0;
-	g_obj->f_obj.rot_speed = 3.0 / 30.0;
+	g_obj->f_obj.move_speed = 5.0 / 60.0;
+	g_obj->f_obj.rot_speed = 3.0 / 60.0;
 }
 
 t_image	*new_scene(void *mlx_ptr)
@@ -307,57 +307,78 @@ int	ft_key_hook(int keycode, t_game_struct *g_obj)
 		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
 	}
 	else if (keycode == W_KEY)
-	{
-		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x + 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
-			g_obj->p_obj.pos_x += g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
-		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y + 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
-			g_obj->p_obj.pos_y += g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
-		clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
-	}
+		g_obj->key_press[UP_PRESS] = 1;
 	else if (keycode == S_KEY)
-	{
-		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x - 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
-			g_obj->p_obj.pos_x -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
-		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y - 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
-			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
-		clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
-	}
-	// 좌우 벽에 붙으면 bux error가 일어나는 이슈
-	// 레이 캐스팅 계산시 start,end 지점이 터무니 없이 계산되는 문제로 추정
-	// 임시로 검사할 때 두 배씩 하는 방법을 했지만, 모서리 접근시? 벽이 절반을 뒤덮을시? bus error
+		g_obj->key_press[DOWN_PRESS] = 1;
 	else if (keycode == A_KEY)
-	{
-		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x - 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
-			g_obj->p_obj.pos_x -= g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
-		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y + 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
-			g_obj->p_obj.pos_y += g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
-		clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
-	}
+		g_obj->key_press[LEFT_PRESS] = 1;
 	else if (keycode == D_KEY)
-	{
-		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x + 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
-			g_obj->p_obj.pos_x += g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
-		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y - 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
-			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
-		clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
-	}
+		g_obj->key_press[RIGHT_PRESS] = 1;
 	else if (keycode == SPACE_KEY)
-		g_obj->f_obj.move_speed = 10.0 / 30.0;
+		g_obj->f_obj.move_speed = 10.0 / 60.0;
 	return (0);
 }
 
 int	ft_keyup_hook(int keycode, t_game_struct *g_obj)
 {
-	if (keycode == SPACE_KEY)
-		g_obj->f_obj.move_speed = 5.0 / 30.0;
+	if (keycode == W_KEY)
+		g_obj->key_press[UP_PRESS] = 0;
+	else if (keycode == S_KEY)
+		g_obj->key_press[DOWN_PRESS] = 0;
+	else if (keycode == A_KEY)
+		g_obj->key_press[LEFT_PRESS] = 0;
+	else if (keycode == D_KEY)
+		g_obj->key_press[RIGHT_PRESS] = 0;
+	else if (keycode == SPACE_KEY)
+		g_obj->f_obj.move_speed = 5.0 / 60.0;
+	return (0);
+}
+
+int	ft_loop_hook(t_game_struct *g_obj)
+{
+	// 좌우 벽에 붙으면 bux error가 일어나는 이슈
+	// 레이 캐스팅 계산시 start,end 지점이 터무니 없이 계산되는 문제로 추정
+	// 임시로 검사할 때 두 배씩 하는 방법을 했지만, 모서리 접근시? 벽이 절반을 뒤덮을시? bus error
+	if (g_obj->key_press[UP_PRESS])
+	{
+		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x + 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+			g_obj->p_obj.pos_x += g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
+		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y + 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
+			g_obj->p_obj.pos_y += g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
+		//clear_screen(g_obj);
+		draw_scene(g_obj);
+		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
+	}
+	if (g_obj->key_press[DOWN_PRESS])
+	{
+		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x - 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+			g_obj->p_obj.pos_x -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
+		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y - 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
+			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
+		//clear_screen(g_obj);
+		draw_scene(g_obj);
+		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
+	}
+	if (g_obj->key_press[LEFT_PRESS])
+	{
+		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x - 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+			g_obj->p_obj.pos_x -= g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
+		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y + 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
+			g_obj->p_obj.pos_y += g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
+		//clear_screen(g_obj);
+		draw_scene(g_obj);
+		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
+	}
+	if (g_obj->key_press[RIGHT_PRESS])
+	{
+		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x + 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+			g_obj->p_obj.pos_x += g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
+		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y - 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
+			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
+		//clear_screen(g_obj);
+		draw_scene(g_obj);
+		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
+	}
 	return (0);
 }
 
@@ -367,13 +388,16 @@ void	start_game(t_game_struct *g_obj)
 	if (!g_obj->img_set)
 		return ;
 	draw_scene(g_obj);
-	g_obj->win_ptr = mlx_new_window(g_obj->mlx_ptr, WIN_WIDTH, WIN_HEIGHT, "cub3d");
+	g_obj->win_ptr = mlx_new_window(g_obj->mlx_ptr, WIN_WIDTH, WIN_HEIGHT, \
+									"cub3d");
 	if (!g_obj->win_ptr)
 		return ;
-	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
+	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, \
+							g_obj->img_set->img_ptr, 0, 0);
 	mlx_hook(g_obj->win_ptr, ON_KEYDOWN, 0, ft_key_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_KEYUP, 0, ft_keyup_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_DESTROY, 0, ft_destroy, g_obj);
+	mlx_loop_hook(g_obj->mlx_ptr, ft_loop_hook, g_obj);
 	mlx_loop(g_obj->mlx_ptr);
 }
 
@@ -390,8 +414,12 @@ void	read_texture(int fd, t_game_struct *g_obj)
 			break ;
 		if (r_line[ft_strlen(r_line) - 1] == '\n')
 			r_line[ft_strlen(r_line) - 1] = 0;
-		g_obj->tex_set[idx].img_ptr = mlx_xpm_file_to_image(g_obj->mlx_ptr, r_line, &g_obj->tex_set[idx].pixel_x, &g_obj->tex_set[idx].pixel_y);
-		g_obj->tex_set[idx].img_data = mlx_get_data_addr(g_obj->tex_set[idx].img_ptr, &g_obj->tex_set[idx].bits_per_pixel, &g_obj->tex_set[idx].size_line, &g_obj->tex_set[idx].endian);
+		g_obj->tex_set[idx].img_ptr = mlx_xpm_file_to_image(g_obj->mlx_ptr, \
+									r_line, &g_obj->tex_set[idx].pixel_x, \
+									&g_obj->tex_set[idx].pixel_y);
+		g_obj->tex_set[idx].img_data = mlx_get_data_addr(\
+			g_obj->tex_set[idx].img_ptr, &g_obj->tex_set[idx].bits_per_pixel, \
+			&g_obj->tex_set[idx].size_line, &g_obj->tex_set[idx].endian);
 		free(r_line);
 		idx++;
 	}
