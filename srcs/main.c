@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:20 by doohkim           #+#    #+#             */
-/*   Updated: 2023/03/30 19:28:32 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/03/31 16:49:22 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ void	init_obj(t_game_struct *g_obj)
 	g_obj->f_obj.old_time = 0;
 	g_obj->f_obj.time = 0;
 	g_obj->f_obj.move_speed = 5.0 / 60.0;
-	g_obj->f_obj.rot_speed = 3.0 / 60.0;
+	g_obj->f_obj.rot_speed = 0.75 / 60.0;
 }
 
 t_image	*new_scene(void *mlx_ptr)
@@ -277,35 +277,8 @@ void	clear_screen(t_game_struct *g_obj)
 
 int	ft_key_hook(int keycode, t_game_struct *g_obj)
 {
-	double	old_dir_x;
-	double	old_plane_x;
-
 	if (keycode == ESC_KEY)
 		ft_destroy(g_obj);
-	else if (keycode == LEFT_KEY)
-	{
-		old_dir_x = g_obj->p_obj.dir_x;
-		g_obj->p_obj.dir_x = g_obj->p_obj.dir_x * cos(g_obj->f_obj.rot_speed) - g_obj->p_obj.dir_y * sin(g_obj->f_obj.rot_speed);
-		g_obj->p_obj.dir_y = old_dir_x * sin(g_obj->f_obj.rot_speed) + g_obj->p_obj.dir_y * cos(g_obj->f_obj.rot_speed);
-		old_plane_x = g_obj->p_obj.plane_x;
-		g_obj->p_obj.plane_x = g_obj->p_obj.plane_x * cos(g_obj->f_obj.rot_speed) - g_obj->p_obj.plane_y * sin(g_obj->f_obj.rot_speed);
-		g_obj->p_obj.plane_y = old_plane_x * sin(g_obj->f_obj.rot_speed) + g_obj->p_obj.plane_y * cos(g_obj->f_obj.rot_speed);
-		clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
-	}
-	else if (keycode == RIGHT_KEY)
-	{
-		old_dir_x = g_obj->p_obj.dir_x;
-		g_obj->p_obj.dir_x = g_obj->p_obj.dir_x * cos(-g_obj->f_obj.rot_speed) - g_obj->p_obj.dir_y * sin(-g_obj->f_obj.rot_speed);
-		g_obj->p_obj.dir_y = old_dir_x * sin(-g_obj->f_obj.rot_speed) + g_obj->p_obj.dir_y * cos(-g_obj->f_obj.rot_speed);
-		old_plane_x = g_obj->p_obj.plane_x;
-		g_obj->p_obj.plane_x = g_obj->p_obj.plane_x * cos(-g_obj->f_obj.rot_speed) - g_obj->p_obj.plane_y * sin(-g_obj->f_obj.rot_speed);
-		g_obj->p_obj.plane_y = old_plane_x * sin(-g_obj->f_obj.rot_speed) + g_obj->p_obj.plane_y * cos(-g_obj->f_obj.rot_speed);
-		clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
-	}
 	else if (keycode == W_KEY)
 		g_obj->key_press[UP_PRESS] = 1;
 	else if (keycode == S_KEY)
@@ -334,20 +307,62 @@ int	ft_keyup_hook(int keycode, t_game_struct *g_obj)
 	return (0);
 }
 
+int	ft_mouse_move(int x, int y, t_game_struct *g_obj)
+{
+	(void)y;
+	if (x < WIN_WIDTH / 4)
+	{
+		if (x < 0)
+			g_obj->f_obj.rot_speed = 1.5 / 60.0;
+		else
+			g_obj->f_obj.rot_speed = 0.75 / 60.0;
+		g_obj->mouse_move = LEFT_MOVE;
+	}
+	else if (x > WIN_WIDTH / 4 * 3)
+	{
+		if (x > WIN_WIDTH)
+			g_obj->f_obj.rot_speed = 1.5 / 60.0;
+		else
+			g_obj->f_obj.rot_speed = 0.75 / 60.0;
+		g_obj->mouse_move = RIGHT_MOVE;
+	}
+	else
+		g_obj->mouse_move = NO_MOVE;
+	return (0);
+}
+
 int	ft_loop_hook(t_game_struct *g_obj)
 {
+	double	old_dir_x;
+	double	old_plane_x;
+
 	// 좌우 벽에 붙으면 bux error가 일어나는 이슈
 	// 레이 캐스팅 계산시 start,end 지점이 터무니 없이 계산되는 문제로 추정
 	// 임시로 검사할 때 두 배씩 하는 방법을 했지만, 모서리 접근시? 벽이 절반을 뒤덮을시? bus error
+	if (g_obj->mouse_move == LEFT_MOVE)
+	{
+		old_dir_x = g_obj->p_obj.dir_x;
+		g_obj->p_obj.dir_x = g_obj->p_obj.dir_x * cos(g_obj->f_obj.rot_speed) - g_obj->p_obj.dir_y * sin(g_obj->f_obj.rot_speed);
+		g_obj->p_obj.dir_y = old_dir_x * sin(g_obj->f_obj.rot_speed) + g_obj->p_obj.dir_y * cos(g_obj->f_obj.rot_speed);
+		old_plane_x = g_obj->p_obj.plane_x;
+		g_obj->p_obj.plane_x = g_obj->p_obj.plane_x * cos(g_obj->f_obj.rot_speed) - g_obj->p_obj.plane_y * sin(g_obj->f_obj.rot_speed);
+		g_obj->p_obj.plane_y = old_plane_x * sin(g_obj->f_obj.rot_speed) + g_obj->p_obj.plane_y * cos(g_obj->f_obj.rot_speed);
+	}
+	if (g_obj->mouse_move == RIGHT_MOVE)
+	{
+		old_dir_x = g_obj->p_obj.dir_x;
+		g_obj->p_obj.dir_x = g_obj->p_obj.dir_x * cos(-g_obj->f_obj.rot_speed) - g_obj->p_obj.dir_y * sin(-g_obj->f_obj.rot_speed);
+		g_obj->p_obj.dir_y = old_dir_x * sin(-g_obj->f_obj.rot_speed) + g_obj->p_obj.dir_y * cos(-g_obj->f_obj.rot_speed);
+		old_plane_x = g_obj->p_obj.plane_x;
+		g_obj->p_obj.plane_x = g_obj->p_obj.plane_x * cos(-g_obj->f_obj.rot_speed) - g_obj->p_obj.plane_y * sin(-g_obj->f_obj.rot_speed);
+		g_obj->p_obj.plane_y = old_plane_x * sin(-g_obj->f_obj.rot_speed) + g_obj->p_obj.plane_y * cos(-g_obj->f_obj.rot_speed);
+	}
 	if (g_obj->key_press[UP_PRESS])
 	{
 		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x + 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
 			g_obj->p_obj.pos_x += g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
 		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y + 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
 			g_obj->p_obj.pos_y += g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
-		//clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
 	}
 	if (g_obj->key_press[DOWN_PRESS])
 	{
@@ -355,9 +370,6 @@ int	ft_loop_hook(t_game_struct *g_obj)
 			g_obj->p_obj.pos_x -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
 		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y - 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
 			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
-		//clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
 	}
 	if (g_obj->key_press[LEFT_PRESS])
 	{
@@ -365,9 +377,6 @@ int	ft_loop_hook(t_game_struct *g_obj)
 			g_obj->p_obj.pos_x -= g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
 		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y + 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
 			g_obj->p_obj.pos_y += g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
-		//clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
 	}
 	if (g_obj->key_press[RIGHT_PRESS])
 	{
@@ -375,10 +384,9 @@ int	ft_loop_hook(t_game_struct *g_obj)
 			g_obj->p_obj.pos_x += g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
 		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y - 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
 			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
-		//clear_screen(g_obj);
-		draw_scene(g_obj);
-		mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
 	}
+	draw_scene(g_obj);
+	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
 	return (0);
 }
 
@@ -397,6 +405,7 @@ void	start_game(t_game_struct *g_obj)
 	mlx_hook(g_obj->win_ptr, ON_KEYDOWN, 0, ft_key_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_KEYUP, 0, ft_keyup_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_DESTROY, 0, ft_destroy, g_obj);
+	mlx_hook(g_obj->win_ptr, ON_MOUSEMOVE, 0, ft_mouse_move, g_obj);
 	mlx_loop_hook(g_obj->mlx_ptr, ft_loop_hook, g_obj);
 	mlx_loop(g_obj->mlx_ptr);
 }

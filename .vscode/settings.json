@@ -3,7 +3,9 @@
 		{
 			"cwd": "/Users/doohkim/Desktop/cub3d_prec",
 			"binaryPath": "/Users/doohkim/Desktop/cub3d_prec/cub3d",
-			"binaryArgs": ["example/test.cub"]
+			"binaryArgs": [
+				"example/test.cub"
+			]
 		}
 	]
 }

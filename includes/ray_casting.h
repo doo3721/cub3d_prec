@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:55 by doohkim           #+#    #+#             */
-/*   Updated: 2023/03/30 19:12:58 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/03/31 16:33:10 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,13 @@ enum	e_key_press
 	RIGHT_PRESS
 }	;
 
+enum	e_mouse_move
+{
+	LEFT_MOVE = -1,
+	NO_MOVE = 0,
+	RIGHT_MOVE = 1
+}	;
+
 typedef struct s_player
 {
 	double	pos_x;
@@ -97,6 +104,7 @@ typedef struct s_game_struct
 	t_image		*img_set;
 	t_image		tex_set[6];
 	int			key_press[4];
+	int			mouse_move;
 }	t_game_struct;
 
 int		ft_error(char *str, t_game_struct *g_obj);
