@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:20 by doohkim           #+#    #+#             */
-/*   Updated: 2023/03/31 16:49:22 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/03 17:07:38 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,7 @@ void	draw_scene(t_game_struct *g_obj)
 	x = 0;
 	while (x < WIN_WIDTH)
 	{
-		cam_x = 2 * x / (double) WIN_WIDTH - 1;
+		cam_x = 2 * x / (double)WIN_WIDTH - 1.0;
 		ray_dir_x = g_obj->p_obj.dir_x + g_obj->p_obj.plane_x * cam_x;
 		ray_dir_y = g_obj->p_obj.dir_y + g_obj->p_obj.plane_y * cam_x;
 		map_x = (int) g_obj->p_obj.pos_x;
@@ -244,11 +244,23 @@ void	draw_scene(t_game_struct *g_obj)
 			color[1] = g_obj->tex_set[tex_num].img_data[tex_x * 4 + g_obj->tex_set[tex_num].size_line * tex_y + 1];
 			color[2] = g_obj->tex_set[tex_num].img_data[tex_x * 4 + g_obj->tex_set[tex_num].size_line * tex_y + 2];
 			color[3] = g_obj->tex_set[tex_num].img_data[tex_x * 4 + g_obj->tex_set[tex_num].size_line * tex_y + 3];
-			if (side == 1)
+			if (side == 0 && step_x == 1)
+			{
+				color[0] = (char)((unsigned char)color[0] / 8);
+				color[1] = (char)((unsigned char)color[1] / 8);
+				color[2] = (char)((unsigned char)color[2] / 8);
+			}
+			if (side == 1 && step_y == -1)
 			{
 				color[0] = (char)((unsigned char)color[0] / 2);
 				color[1] = (char)((unsigned char)color[1] / 2);
 				color[2] = (char)((unsigned char)color[2] / 2);
+			}
+			if (side == 1 && step_y == 1)
+			{
+				color[0] = (char)((unsigned char)color[0] / 4);
+				color[1] = (char)((unsigned char)color[1] / 4);
+				color[2] = (char)((unsigned char)color[2] / 4);
 			}
 			idx = x * 4 +g_obj->img_set->size_line * y;
 			put_pixel(g_obj, idx, color);

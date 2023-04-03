@@ -11,11 +11,10 @@ W,A,S,D: 방향 키
 
 ### TODO
 - norm 맞추기
-- 동서남북 텍스쳐 구현
-
 
 ### COMPLETE
 - 키 동시입력 구현 (mlx_loop_hook으로 구현, 프레임도 부드러워짐)
 - 마우스로 시점 변경 (위와 비슷한 방식으로 구현)
+- 동서남북 텍스쳐 구현 (side, step_x, step_y로 구분)
 
 출처: [365kim - raycasting_tutorial](https://github.com/365kim/raycasting_tutorial)
