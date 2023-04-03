@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:20 by doohkim           #+#    #+#             */
-/*   Updated: 2023/04/03 17:07:38 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/03 19:56:05 by hdoo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,15 +54,15 @@ void	ft_create_map(int fd, t_game_struct *g_obj)
 void	init_obj(t_game_struct *g_obj)
 {
 	g_obj->p_obj.pos_x = 22;
-	g_obj->p_obj.pos_y = 12;
+	g_obj->p_obj.pos_y = 13;
 	g_obj->p_obj.dir_x = -1;
 	g_obj->p_obj.dir_y = 0;
 	g_obj->p_obj.plane_x = 0;
-	g_obj->p_obj.plane_y = 0.66;
+	g_obj->p_obj.plane_y = 0.5;
 	g_obj->f_obj.old_time = 0;
 	g_obj->f_obj.time = 0;
-	g_obj->f_obj.move_speed = 5.0 / 60.0;
-	g_obj->f_obj.rot_speed = 0.75 / 60.0;
+	g_obj->f_obj.move_speed = 0.041;
+	g_obj->f_obj.rot_speed = 0.05;
 }
 
 t_image	*new_scene(void *mlx_ptr)
@@ -121,13 +121,13 @@ void	draw_scene(t_game_struct *g_obj)
 	x = 0;
 	while (x < WIN_WIDTH)
 	{
-		cam_x = 2 * x / (double)WIN_WIDTH - 1.0;
+		cam_x = 2 * x / (double)WIN_WIDTH - 1;
 		ray_dir_x = g_obj->p_obj.dir_x + g_obj->p_obj.plane_x * cam_x;
 		ray_dir_y = g_obj->p_obj.dir_y + g_obj->p_obj.plane_y * cam_x;
-		map_x = (int) g_obj->p_obj.pos_x;
-		map_y = (int) g_obj->p_obj.pos_y;
-		delta_dist_x = fabs(1.0 / ray_dir_x);
-		delta_dist_y = fabs(1.0 / ray_dir_y);
+		map_x = (int)g_obj->p_obj.pos_x;
+		map_y = (int)g_obj->p_obj.pos_y;
+		delta_dist_x = fabs(1 / ray_dir_x);
+		delta_dist_y = fabs(1 / ray_dir_y);
 		hit = 0;
 
 		if (ray_dir_x < 0)
@@ -164,24 +164,28 @@ void	draw_scene(t_game_struct *g_obj)
 				map_y += step_y;
 				side = 1;
 			}
-			if (g_obj->map_arr[map_x][map_y] > 0)
+			if (g_obj->map_arr[map_x][map_y] != 0)
 				hit = 1;
 		}
 		if (side == 0)
-			perp_wall_dist = (map_x - g_obj->p_obj.pos_x + (1 - step_x) / 2) / ray_dir_x;
+		{
+			perp_wall_dist = (map_x - g_obj->p_obj.pos_x + (1 - step_x) / 2.0) / ray_dir_x;
+		}
 		else
-			perp_wall_dist = (map_y - g_obj->p_obj.pos_y + (1 - step_y) / 2) / ray_dir_y;
+			perp_wall_dist = (map_y - g_obj->p_obj.pos_y + (1 - step_y) / 2.0) / ray_dir_y;
 
+		// printf("x: %d %f\n", map_x, g_obj->p_obj.pos_x);
+		// printf("y: %d %f\n", map_y, g_obj->p_obj.pos_y);
 		line_height = (int)(WIN_HEIGHT / perp_wall_dist);
 
 		// 윗 지점
-		draw_start = WIN_HEIGHT / 2 - line_height / 2;
+		draw_start =  -line_height / 2 + WIN_HEIGHT / 2;
+		draw_end = WIN_HEIGHT / 2 + line_height / 2 ;
 		if (draw_start < 0)
 			draw_start = 0;
 		// 아랫 지점
-		draw_end = WIN_HEIGHT / 2 + line_height / 2 ;
-		if (draw_end >= WIN_HEIGHT)
-			draw_end = WIN_HEIGHT - 1;
+		if (draw_end >= (int)WIN_HEIGHT)
+			draw_end = (int)WIN_HEIGHT - 1;
 		
 		tex_num = g_obj->map_arr[map_x][map_y];
 		
@@ -198,7 +202,7 @@ void	draw_scene(t_game_struct *g_obj)
 			tex_x = 64 - tex_x - 1;
 		
 		step = 64.0 / (double)line_height;
-		tex_pos = (double)(draw_start - WIN_HEIGHT / 2 + line_height / 2) * step;
+		tex_pos = (double)(draw_start - WIN_HEIGHT / 2.0 + line_height / 2.0) * step;
 		
 		/*
 		// 텍스쳐없이 color로만 렌더링
@@ -371,31 +375,48 @@ int	ft_loop_hook(t_game_struct *g_obj)
 	}
 	if (g_obj->key_press[UP_PRESS])
 	{
-		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x + 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x +  g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+		{
 			g_obj->p_obj.pos_x += g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
-		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y + 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
+		}
+
+		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y +  g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
+		{
 			g_obj->p_obj.pos_y += g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
+		}
 	}
 	if (g_obj->key_press[DOWN_PRESS])
 	{
-		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x - 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x -  g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+		{
 			g_obj->p_obj.pos_x -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
-		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y - 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
+		}
+		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y -  g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)] == 0)
+		{
 			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
+		}
 	}
 	if (g_obj->key_press[LEFT_PRESS])
 	{
-		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x - 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x -  g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+		{
 			g_obj->p_obj.pos_x -= g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
-		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y + 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
+		}
+		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y +  g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
+		{
 			g_obj->p_obj.pos_y += g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
+		}
 	}
 	if (g_obj->key_press[RIGHT_PRESS])
 	{
-		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x + 2.0 * g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+		if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x +  g_obj->p_obj.dir_y * g_obj->f_obj.move_speed)][(int)g_obj->p_obj.pos_y] == 0)
+		{
 			g_obj->p_obj.pos_x += g_obj->p_obj.dir_y * g_obj->f_obj.move_speed;
-		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y - 2.0 * g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
+		}
+		if (g_obj->map_arr[(int)g_obj->p_obj.pos_x][(int)(g_obj->p_obj.pos_y -  g_obj->p_obj.dir_x * g_obj->f_obj.move_speed)] == 0)
+		{
 			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
+		}
 	}
 	draw_scene(g_obj);
 	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_set->img_ptr, 0, 0);
