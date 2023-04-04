@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:55 by doohkim           #+#    #+#             */
-/*   Updated: 2023/03/31 16:33:10 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/04 15:36:23 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,8 @@
 
 # define MAP_WIDTH 24
 # define MAP_HEIGHT 24
-# define WIN_WIDTH 640
-# define WIN_HEIGHT 480
+# define WIN_WIDTH 1280
+# define WIN_HEIGHT 720
 
 typedef enum e_event_type
 {
@@ -101,7 +101,8 @@ typedef struct s_game_struct
 	int			map_height;
 	t_player	p_obj;
 	t_frame		f_obj;
-	t_image		*img_set;
+	t_image		*front_buf;
+	t_image		*back_buf;
 	t_image		tex_set[6];
 	int			key_press[4];
 	int			mouse_move;
