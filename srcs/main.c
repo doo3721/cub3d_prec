@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:20 by doohkim           #+#    #+#             */
-/*   Updated: 2023/04/04 15:51:23 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/04 16:54:22 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -311,7 +311,19 @@ int	ft_key_hook(int keycode, t_game_struct *g_obj)
 	else if (keycode == D_KEY)
 		g_obj->key_press[RIGHT_PRESS] = 1;
 	else if (keycode == SPACE_KEY)
-		g_obj->f_obj.move_speed = 10.0 / 60.0;
+		g_obj->f_obj.move_speed = 6.0 / 61.0;
+	else if (keycode == P_KEY)
+	{
+		if (!g_obj->view_change)
+			g_obj->view_change = 1;
+		else
+			g_obj->view_change = 0;
+		g_obj->view_move = NO_MOVE;
+	}
+	else if (keycode == LEFT_KEY && !g_obj->view_change)
+		g_obj->view_move = LEFT_MOVE;
+	else if (keycode == RIGHT_KEY && !g_obj->view_change)
+		g_obj->view_move = RIGHT_MOVE;
 	return (0);
 }
 
@@ -325,21 +337,27 @@ int	ft_keyup_hook(int keycode, t_game_struct *g_obj)
 		g_obj->key_press[LEFT_PRESS] = 0;
 	else if (keycode == D_KEY)
 		g_obj->key_press[RIGHT_PRESS] = 0;
+	else if (keycode == LEFT_KEY && !g_obj->view_change)
+		g_obj->view_move = NO_MOVE;
+	else if (keycode == RIGHT_KEY && !g_obj->view_change)
+		g_obj->view_move = NO_MOVE;
 	else if (keycode == SPACE_KEY)
 		g_obj->f_obj.move_speed = 5.0 / 60.0;
 	return (0);
 }
 
-int	ft_mouse_move(int x, int y, t_game_struct *g_obj)
+int	ft_view_move(int x, int y, t_game_struct *g_obj)
 {
 	(void)y;
+	if (!g_obj->view_change)
+		return (0);
 	if (x < WIN_WIDTH / 4)
 	{
 		if (x < 0)
 			g_obj->f_obj.rot_speed = 1.5 / 61.0;
 		else
 			g_obj->f_obj.rot_speed = 0.75 / 61.0;
-		g_obj->mouse_move = LEFT_MOVE;
+		g_obj->view_move = LEFT_MOVE;
 	}
 	else if (x > WIN_WIDTH / 4 * 3)
 	{
@@ -347,10 +365,10 @@ int	ft_mouse_move(int x, int y, t_game_struct *g_obj)
 			g_obj->f_obj.rot_speed = 1.5 / 61.0;
 		else
 			g_obj->f_obj.rot_speed = 0.75 / 61.0;
-		g_obj->mouse_move = RIGHT_MOVE;
+		g_obj->view_move = RIGHT_MOVE;
 	}
 	else
-		g_obj->mouse_move = NO_MOVE;
+		g_obj->view_move = NO_MOVE;
 	return (0);
 }
 
@@ -362,7 +380,7 @@ int	ft_loop_hook(t_game_struct *g_obj)
 	// 좌우 벽에 붙으면 bux error가 일어나는 이슈
 	// 레이 캐스팅 계산시 start,end 지점이 터무니 없이 계산되는 문제로 추정
 	// 임시로 검사할 때 두 배씩 하는 방법을 했지만, 모서리 접근시? 벽이 절반을 뒤덮을시? bus error
-	if (g_obj->mouse_move == LEFT_MOVE)
+	if (g_obj->view_move == LEFT_MOVE)
 	{
 		old_dir_x = g_obj->p_obj.dir_x;
 		g_obj->p_obj.dir_x = g_obj->p_obj.dir_x * cos(g_obj->f_obj.rot_speed) - g_obj->p_obj.dir_y * sin(g_obj->f_obj.rot_speed);
@@ -371,7 +389,7 @@ int	ft_loop_hook(t_game_struct *g_obj)
 		g_obj->p_obj.plane_x = g_obj->p_obj.plane_x * cos(g_obj->f_obj.rot_speed) - g_obj->p_obj.plane_y * sin(g_obj->f_obj.rot_speed);
 		g_obj->p_obj.plane_y = old_plane_x * sin(g_obj->f_obj.rot_speed) + g_obj->p_obj.plane_y * cos(g_obj->f_obj.rot_speed);
 	}
-	if (g_obj->mouse_move == RIGHT_MOVE)
+	if (g_obj->view_move == RIGHT_MOVE)
 	{
 		old_dir_x = g_obj->p_obj.dir_x;
 		g_obj->p_obj.dir_x = g_obj->p_obj.dir_x * cos(-g_obj->f_obj.rot_speed) - g_obj->p_obj.dir_y * sin(-g_obj->f_obj.rot_speed);
@@ -433,7 +451,7 @@ void	start_game(t_game_struct *g_obj)
 	mlx_hook(g_obj->win_ptr, ON_KEYDOWN, 0, ft_key_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_KEYUP, 0, ft_keyup_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_DESTROY, 0, ft_destroy, g_obj);
-	mlx_hook(g_obj->win_ptr, ON_MOUSEMOVE, 0, ft_mouse_move, g_obj);
+	mlx_hook(g_obj->win_ptr, ON_MOUSEMOVE, 0, ft_view_move, g_obj);
 	mlx_loop_hook(g_obj->mlx_ptr, ft_loop_hook, g_obj);
 	mlx_loop(g_obj->mlx_ptr);
 }

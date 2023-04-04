@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:55 by doohkim           #+#    #+#             */
-/*   Updated: 2023/04/04 15:36:23 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/04 16:54:21 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ typedef enum e_keycode
 	D_KEY = 2,
 	W_KEY = 13,
 	S_KEY = 1,
+	P_KEY = 35,
 	LEFT_KEY = 123,
 	RIGHT_KEY = 124,
 	SPACE_KEY = 49,
@@ -56,7 +57,7 @@ enum	e_key_press
 	RIGHT_PRESS
 }	;
 
-enum	e_mouse_move
+enum	e_view_move
 {
 	LEFT_MOVE = -1,
 	NO_MOVE = 0,
@@ -105,7 +106,8 @@ typedef struct s_game_struct
 	t_image		*back_buf;
 	t_image		tex_set[6];
 	int			key_press[4];
-	int			mouse_move;
+	int			view_move;
+	int			view_change;
 }	t_game_struct;
 
 int		ft_error(char *str, t_game_struct *g_obj);
