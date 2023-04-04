@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:55 by doohkim           #+#    #+#             */
-/*   Updated: 2023/04/04 16:54:21 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/04 18:38:58 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,12 +102,12 @@ typedef struct s_game_struct
 	int			map_height;
 	t_player	p_obj;
 	t_frame		f_obj;
-	t_image		*front_buf;
-	t_image		*back_buf;
+	t_image		*img_buf[2];
 	t_image		tex_set[6];
 	int			key_press[4];
 	int			view_move;
 	int			view_change;
+	int			buf_idx;
 }	t_game_struct;
 
 int		ft_error(char *str, t_game_struct *g_obj);

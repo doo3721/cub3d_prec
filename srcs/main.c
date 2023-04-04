@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:20 by doohkim           #+#    #+#             */
-/*   Updated: 2023/04/04 16:54:22 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/04 18:47:15 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,10 +91,10 @@ t_image	*new_scene(void *mlx_ptr)
 
 void	put_pixel(t_game_struct *g_obj, int idx, char *color)
 {
-	g_obj->back_buf->img_data[idx] = color[0];
-	g_obj->back_buf->img_data[idx + 1] = color[1];
-	g_obj->back_buf->img_data[idx + 2] = color[2];
-	g_obj->back_buf->img_data[idx + 3] = color[3];
+	g_obj->img_buf[g_obj->buf_idx]->img_data[idx] = color[0];
+	g_obj->img_buf[g_obj->buf_idx]->img_data[idx + 1] = color[1];
+	g_obj->img_buf[g_obj->buf_idx]->img_data[idx + 2] = color[2];
+	g_obj->img_buf[g_obj->buf_idx]->img_data[idx + 3] = color[3];
 }
 
 void	draw_line(t_game_struct *g_obj, int x, int draw_start, int draw_end, char *color)
@@ -103,7 +103,7 @@ void	draw_line(t_game_struct *g_obj, int x, int draw_start, int draw_end, char *
 
 	while (draw_start < draw_end)
 	{
-		idx = x * 4 + g_obj->back_buf->size_line * draw_start;
+		idx = x * 4 + g_obj->img_buf[g_obj->buf_idx]->size_line * draw_start;
 		put_pixel(g_obj, idx, color);
 		draw_start++;
 	}
@@ -266,7 +266,7 @@ void	draw_scene(t_game_struct *g_obj)
 				color[1] = (char)((unsigned char)color[1] / 4);
 				color[2] = (char)((unsigned char)color[2] / 4);
 			}
-			idx = x * 4 + g_obj->back_buf->size_line * y;
+			idx = x * 4 + g_obj->img_buf[g_obj->buf_idx]->size_line * y;
 			put_pixel(g_obj, idx, color);
 			y++;
 		}
@@ -275,18 +275,19 @@ void	draw_scene(t_game_struct *g_obj)
 		x++;
 	}
 }
-
+/*
 void	draw_front(t_game_struct *g_obj)
 {
 	ft_memmove(g_obj->front_buf->img_data, g_obj->back_buf->img_data, g_obj->back_buf->size_line * WIN_HEIGHT);
 }
+*/
 
 int	ft_destroy(t_game_struct *g_obj)
 {
-	mlx_destroy_image(g_obj->mlx_ptr, g_obj->front_buf->img_ptr);
-	mlx_destroy_image(g_obj->mlx_ptr, g_obj->back_buf->img_ptr);
-	free(g_obj->front_buf);
-	free(g_obj->back_buf);
+	mlx_destroy_image(g_obj->mlx_ptr, g_obj->img_buf[0]->img_ptr);
+	mlx_destroy_image(g_obj->mlx_ptr, g_obj->img_buf[1]->img_ptr);
+	free(g_obj->img_buf[0]);
+	free(g_obj->img_buf[1]);
 	mlx_destroy_window(g_obj->mlx_ptr, g_obj->win_ptr);
 	exit(EXIT_SUCCESS);
 	return (0);
@@ -380,6 +381,10 @@ int	ft_loop_hook(t_game_struct *g_obj)
 	// 좌우 벽에 붙으면 bux error가 일어나는 이슈
 	// 레이 캐스팅 계산시 start,end 지점이 터무니 없이 계산되는 문제로 추정
 	// 임시로 검사할 때 두 배씩 하는 방법을 했지만, 모서리 접근시? 벽이 절반을 뒤덮을시? bus error
+	if (g_obj->buf_idx)
+		g_obj->buf_idx = 0;
+	else
+		g_obj->buf_idx = 1;
 	if (g_obj->view_move == LEFT_MOVE)
 	{
 		old_dir_x = g_obj->p_obj.dir_x;
@@ -427,27 +432,25 @@ int	ft_loop_hook(t_game_struct *g_obj)
 			g_obj->p_obj.pos_y -= g_obj->p_obj.dir_x * g_obj->f_obj.move_speed;
 	}
 	draw_scene(g_obj);
-	draw_front(g_obj);
-	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->front_buf->img_ptr, 0, 0);
+	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_buf[g_obj->buf_idx]->img_ptr, 0, 0);
 	return (0);
 }
 
 void	start_game(t_game_struct *g_obj)
 {
-	g_obj->front_buf = new_scene(g_obj->mlx_ptr);
-	if (!g_obj->front_buf)
+	g_obj->img_buf[0] = new_scene(g_obj->mlx_ptr);
+	if (!g_obj->img_buf[0])
 		return ;
-	g_obj->back_buf = new_scene(g_obj->mlx_ptr);
-	if (!g_obj->back_buf)
+	g_obj->img_buf[1] = new_scene(g_obj->mlx_ptr);
+	if (!g_obj->img_buf[1])
 		return ;
 	draw_scene(g_obj);
-	draw_front(g_obj);
 	g_obj->win_ptr = mlx_new_window(g_obj->mlx_ptr, WIN_WIDTH, WIN_HEIGHT, \
 									"cub3d");
 	if (!g_obj->win_ptr)
 		return ;
 	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, \
-							g_obj->front_buf->img_ptr, 0, 0);
+							g_obj->img_buf[g_obj->buf_idx]->img_ptr, 0, 0);
 	mlx_hook(g_obj->win_ptr, ON_KEYDOWN, 0, ft_key_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_KEYUP, 0, ft_keyup_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_DESTROY, 0, ft_destroy, g_obj);
