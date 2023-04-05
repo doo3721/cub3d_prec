@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:55 by doohkim           #+#    #+#             */
-/*   Updated: 2023/04/04 18:38:58 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/05 17:06:03 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@
 # define MAP_HEIGHT 24
 # define WIN_WIDTH 1280
 # define WIN_HEIGHT 720
+# define MIN_MAP_W 400
+# define MIN_MAP_H 300
+// minimap은 20 * 15의 한칸당 20 * 20 pixel
 
 typedef enum e_event_type
 {
@@ -43,6 +46,7 @@ typedef enum e_keycode
 	W_KEY = 13,
 	S_KEY = 1,
 	P_KEY = 35,
+	M_KEY = 46,
 	LEFT_KEY = 123,
 	RIGHT_KEY = 124,
 	SPACE_KEY = 49,
@@ -103,11 +107,13 @@ typedef struct s_game_struct
 	t_player	p_obj;
 	t_frame		f_obj;
 	t_image		*img_buf[2];
+	t_image		*min_map[2];
 	t_image		tex_set[6];
 	int			key_press[4];
 	int			view_move;
 	int			view_change;
 	int			buf_idx;
+	int			map_view;
 }	t_game_struct;
 
 int		ft_error(char *str, t_game_struct *g_obj);

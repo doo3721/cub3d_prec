@@ -6,7 +6,7 @@
 /*   By: doohkim <doohkim@student.42seoul.kr>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/14 16:16:20 by doohkim           #+#    #+#             */
-/*   Updated: 2023/04/04 18:47:15 by doohkim          ###   ########.fr       */
+/*   Updated: 2023/04/05 17:12:36 by doohkim          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,14 +65,14 @@ void	init_obj(t_game_struct *g_obj)
 	g_obj->f_obj.rot_speed = 0.75 / 61.0;
 }
 
-t_image	*new_scene(void *mlx_ptr)
+t_image	*new_scene(void *mlx_ptr, int width, int height)
 {
 	t_image	*new_img;
 
 	new_img = (t_image *)ft_calloc(1, sizeof(t_image));
 	if (!new_img)
 		return (NULL);
-	new_img->img_ptr = mlx_new_image(mlx_ptr, WIN_WIDTH, WIN_HEIGHT);
+	new_img->img_ptr = mlx_new_image(mlx_ptr, width, height);
 	if (!new_img->img_ptr)
 	{
 		free(new_img);
@@ -89,12 +89,12 @@ t_image	*new_scene(void *mlx_ptr)
 	return (new_img);
 }
 
-void	put_pixel(t_game_struct *g_obj, int idx, char *color)
+void	put_pixel(t_image *img, int idx, char *color)
 {
-	g_obj->img_buf[g_obj->buf_idx]->img_data[idx] = color[0];
-	g_obj->img_buf[g_obj->buf_idx]->img_data[idx + 1] = color[1];
-	g_obj->img_buf[g_obj->buf_idx]->img_data[idx + 2] = color[2];
-	g_obj->img_buf[g_obj->buf_idx]->img_data[idx + 3] = color[3];
+	img->img_data[idx] = color[0];
+	img->img_data[idx + 1] = color[1];
+	img->img_data[idx + 2] = color[2];
+	img->img_data[idx + 3] = color[3];
 }
 
 void	draw_line(t_game_struct *g_obj, int x, int draw_start, int draw_end, char *color)
@@ -104,7 +104,7 @@ void	draw_line(t_game_struct *g_obj, int x, int draw_start, int draw_end, char *
 	while (draw_start < draw_end)
 	{
 		idx = x * 4 + g_obj->img_buf[g_obj->buf_idx]->size_line * draw_start;
-		put_pixel(g_obj, idx, color);
+		put_pixel(g_obj->img_buf[g_obj->buf_idx], idx, color);
 		draw_start++;
 	}
 }
@@ -267,7 +267,7 @@ void	draw_scene(t_game_struct *g_obj)
 				color[2] = (char)((unsigned char)color[2] / 4);
 			}
 			idx = x * 4 + g_obj->img_buf[g_obj->buf_idx]->size_line * y;
-			put_pixel(g_obj, idx, color);
+			put_pixel(g_obj->img_buf[g_obj->buf_idx], idx, color);
 			y++;
 		}
 		//draw_line(g_obj, x, draw_start, draw_end, color);
@@ -275,6 +275,76 @@ void	draw_scene(t_game_struct *g_obj)
 		x++;
 	}
 }
+
+void	minimap_player(t_image *img, char *color)
+{
+	int	x_idx;
+	int	y_idx;
+	int	idx;
+
+	y_idx = MIN_MAP_H / 2 - 4;
+	while (y_idx < MIN_MAP_H / 2 + 4)
+	{
+		x_idx = MIN_MAP_W / 2 - 4;
+		while (x_idx < MIN_MAP_W / 2 + 4)
+		{
+			idx = x_idx * 4 + img->size_line * y_idx;
+			put_pixel(img, idx, color);
+			x_idx++;
+		}
+		y_idx++;
+	}
+}
+
+void	minimap_wall(t_game_struct *g_obj, int p_x_idx, int p_y_idx, char *color)
+{
+	int	x_idx;
+	int	y_idx;
+	int	idx;
+
+	y_idx = -p_y_idx;
+	while (y_idx + p_y_idx < MIN_MAP_H)
+	{
+		if (g_obj->p_obj.pos_x + (double)y_idx * 0.05 >= (double)0 \
+			&& g_obj->p_obj.pos_x + (double)y_idx * 0.05 < (double)MAP_HEIGHT)
+		{
+			x_idx = -p_x_idx;
+			while (x_idx + p_x_idx < MIN_MAP_W)
+			{
+				if (g_obj->p_obj.pos_y + (double)x_idx * 0.05 >= (double)0 \
+					&& g_obj->p_obj.pos_y + (double)x_idx * 0.05 < (double)MAP_WIDTH)
+				{
+					if (g_obj->map_arr[(int)(g_obj->p_obj.pos_x + (double)y_idx * 0.05)][(int)(g_obj->p_obj.pos_y + (double)x_idx * 0.05)] > 0)
+					{
+						idx = (x_idx + p_x_idx) * 4 + g_obj->min_map[g_obj->buf_idx]->size_line * (y_idx + p_y_idx);
+						put_pixel(g_obj->min_map[g_obj->buf_idx], idx, color);
+					}
+				}
+				x_idx++;
+			}
+		}
+		y_idx++;
+	}
+}
+
+void	draw_minimap(t_game_struct *g_obj)
+{
+	char	w_color[4];
+	char	p_color[4];
+
+	if (!g_obj->map_view)
+		return ;
+	ft_memset(g_obj->min_map[g_obj->buf_idx]->img_data, -128, g_obj->min_map[g_obj->buf_idx]->size_line * MIN_MAP_H);
+	ft_memset(w_color, 0, sizeof(w_color));
+	w_color[0] = -128;
+	ft_memset(p_color, 0, sizeof(p_color));
+	p_color[2] = -128;
+	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->min_map[g_obj->buf_idx]->img_ptr, 0, 0);
+	minimap_wall(g_obj, MIN_MAP_W / 2, MIN_MAP_H / 2, w_color);
+	minimap_player(g_obj->min_map[g_obj->buf_idx], p_color);
+	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->min_map[g_obj->buf_idx]->img_ptr, 0, 0);
+}
+
 /*
 void	draw_front(t_game_struct *g_obj)
 {
@@ -286,12 +356,17 @@ int	ft_destroy(t_game_struct *g_obj)
 {
 	mlx_destroy_image(g_obj->mlx_ptr, g_obj->img_buf[0]->img_ptr);
 	mlx_destroy_image(g_obj->mlx_ptr, g_obj->img_buf[1]->img_ptr);
+	mlx_destroy_image(g_obj->mlx_ptr, g_obj->min_map[0]->img_ptr);
+	mlx_destroy_image(g_obj->mlx_ptr, g_obj->min_map[1]->img_ptr);
 	free(g_obj->img_buf[0]);
 	free(g_obj->img_buf[1]);
+	free(g_obj->min_map[0]);
+	free(g_obj->min_map[1]);
 	mlx_destroy_window(g_obj->mlx_ptr, g_obj->win_ptr);
 	exit(EXIT_SUCCESS);
 	return (0);
 }
+
 /*
 void	clear_screen(t_game_struct *g_obj)
 {
@@ -320,6 +395,13 @@ int	ft_key_hook(int keycode, t_game_struct *g_obj)
 		else
 			g_obj->view_change = 0;
 		g_obj->view_move = NO_MOVE;
+	}
+	else if (keycode == M_KEY)
+	{
+		if (!g_obj->map_view)
+			g_obj->map_view = 1;
+		else
+			g_obj->map_view = 0;
 	}
 	else if (keycode == LEFT_KEY && !g_obj->view_change)
 		g_obj->view_move = LEFT_MOVE;
@@ -433,24 +515,32 @@ int	ft_loop_hook(t_game_struct *g_obj)
 	}
 	draw_scene(g_obj);
 	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, g_obj->img_buf[g_obj->buf_idx]->img_ptr, 0, 0);
+	draw_minimap(g_obj);
 	return (0);
 }
 
 void	start_game(t_game_struct *g_obj)
 {
-	g_obj->img_buf[0] = new_scene(g_obj->mlx_ptr);
+	g_obj->img_buf[0] = new_scene(g_obj->mlx_ptr, WIN_WIDTH, WIN_HEIGHT);
 	if (!g_obj->img_buf[0])
 		return ;
-	g_obj->img_buf[1] = new_scene(g_obj->mlx_ptr);
+	g_obj->img_buf[1] = new_scene(g_obj->mlx_ptr, WIN_WIDTH, WIN_HEIGHT);
 	if (!g_obj->img_buf[1])
 		return ;
-	draw_scene(g_obj);
+	g_obj->min_map[0] = new_scene(g_obj->mlx_ptr, MIN_MAP_W, MIN_MAP_H);
+	if (!g_obj->min_map[0])
+		return ;
+	g_obj->min_map[1] = new_scene(g_obj->mlx_ptr, MIN_MAP_W, MIN_MAP_H);
+	if (!g_obj->min_map[1])
+		return ;
 	g_obj->win_ptr = mlx_new_window(g_obj->mlx_ptr, WIN_WIDTH, WIN_HEIGHT, \
 									"cub3d");
 	if (!g_obj->win_ptr)
 		return ;
+	draw_scene(g_obj);
 	mlx_put_image_to_window(g_obj->mlx_ptr, g_obj->win_ptr, \
 							g_obj->img_buf[g_obj->buf_idx]->img_ptr, 0, 0);
+	draw_minimap(g_obj);
 	mlx_hook(g_obj->win_ptr, ON_KEYDOWN, 0, ft_key_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_KEYUP, 0, ft_keyup_hook, g_obj);
 	mlx_hook(g_obj->win_ptr, ON_DESTROY, 0, ft_destroy, g_obj);
